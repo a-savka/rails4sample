@@ -19,6 +19,7 @@
 database.yml
 ZooError.log
 doc/
+GEM_HOME/
 *.swp
 *~
 .project
