@@ -45,7 +45,7 @@ describe "User pages" do
 				fill_in "Name", with: "Example User"
 				fill_in "Email", with: "user@example.org"
 				fill_in "Password", with: "foobar"
-				fill_in "Confirmation", with: "foobar"
+				fill_in "Confirm password", with: "foobar"
 			end
 
 			it "should create a user" do
@@ -102,7 +102,22 @@ describe "User pages" do
 
 		end
 
+		describe "forbidden attributes" do
+			let(:params) do 
+				{ user: { admin: true, password: user.password,
+						  password_confirmation: user.password }}
+			end 
+			before do
+				sign_in user, no_capybara: true
+				patch user_path(user), params
+			end
+			specify { expect(user.reload).not_to be_admin }
+		end
+
+
 	end
+
+
 
 
 	describe "index" do
@@ -135,6 +150,7 @@ describe "User pages" do
 			it { should_not have_link("delete") }
 
 			describe "as an admin user" do
+
 				let(:admin) { FactoryGirl.create(:admin) }
 				before do
 					sign_in admin
@@ -147,6 +163,13 @@ describe "User pages" do
 					end.to change(User, :count).by(-1)
 				end
 				it { should_not have_link('delete', href: user_path(admin)) }
+
+				describe "when try to delete oneself" do
+					before { sign_in admin, no_capybara: true }
+					it "should not be able to do that" do
+						expect { delete user_path(admin) }.not_to change(User, :count)
+					end	
+				end
 			end
 
 			describe "as non-admin user" do

@@ -44,6 +44,26 @@ describe "authentication" do
 				it { should have_link('Sign in') }
 			end
 
+			describe "then try to visit sign up page" do
+				before do 
+					sign_in user, no_capybara: true
+					get signup_path 
+				end
+				specify { expect(response).to redirect_to(root_url) }
+			end
+
+			describe "then try to send POST request to users#create action" do
+				let(:params) do 
+					{ user: {name: user.name, email: user.email, password: user.password,
+							 password_confirmation: user.password} }
+				end
+				before do 
+					sign_in user, no_capybara: true
+					post users_path, params 
+				end
+				specify { expect(response).to redirect_to(root_url) }
+			end
+
 		end
 
 	end
@@ -59,7 +79,7 @@ describe "authentication" do
 
 				describe "visit the edit page" do
 					before { visit edit_user_path(user) }
-					it {should have_title("Sign in")}				
+					it {should have_title("Sign in")}
 				end
 
 				describe "submitting to the update action" do
@@ -76,15 +96,25 @@ describe "authentication" do
 			describe "when attempting to visit protected page" do
 				before do
 					visit edit_user_path(user)
-					fill_in "Email", with: user.email
-					fill_in "Password", with: user.password
-					click_button "Sign in"
+					sign_in user
 				end
 
 				describe "after signing in" do
-					it "should render the desired protected page" do
-						expect(page).to have_title("Edit user")
+
+					describe "should render the desired protected page" do
+						it { should have_title("Edit user") }
 					end
+					
+					describe "when sign in again" do
+						before do
+							click_link "Sign out"
+							sign_in user								
+						end
+						it "should be redirected to profile page" do
+							expect(page).to have_title(full_title user.name)
+						end
+					end
+
 				end
 
 
@@ -110,6 +140,15 @@ describe "authentication" do
 
 		end
 
+	end
+
+
+	describe "when not signed in" do
+		before { visit root_path }
+		it { should_not have_link('Profile') }
+		it { should_not have_link('Settings') }
+		it { should_not have_link('Sign out') }
+		it { should_not have_link('Users') }
 	end
 
 end
