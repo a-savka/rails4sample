@@ -15,3 +15,12 @@
 //= require bootstrap
 //= require turbolinks
 //= require_tree .
+
+
+jQuery(function($){
+	$("#micropost_content").keyup(function(){
+		var remaining = 140 - $(this).val().length;
+		remaining = (remaining < 0 ? 0 : remaining);
+		$("#micropost_content_remaining").text(remaining + (remaining == 1 ? " character" : " characters") + " left.");
+	}).keyup();
+});
